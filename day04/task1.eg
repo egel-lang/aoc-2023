@@ -1,0 +1,23 @@
+# Advent of Code (AoC) - day 4, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "[0-9]+|\\|"
+
+def to_card = do Regex::matches number |> tail |> map to_int |> split_on 0
+
+def count = foldl [0 X -> 1 | N X -> 2*N] 0
+        
+def main =
+    input |> map (do to_card |> [{XX,YY} -> filter [Y -> elem Y XX] YY ])
+    |> map count |> sum

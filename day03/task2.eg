@@ -1,0 +1,39 @@
+# Advent of Code (AoC) - day 3, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def is_digit = [ C -> let O = String::ord C in and (48 <= O) (O <= 57) ]
+
+def split_board =
+    do Dict::to_list |> filter [ (_, C) -> C /= '.' ] 
+        |> split [ (_, C) -> is_digit C ] 
+        |> [(D0,D1) -> (Dict::from_list D0, Dict::from_list (filter [(_,C) -> C == '*'] D1))]
+
+def collate =
+    do Dict::to_list |> map [(P,C) -> (P,{C})] 
+       |> fix [F {} -> {} | F {X} -> {X} | 
+               F {((X0,Y0), CC0), ((X1, Y1), CC1) | XX} ->
+                if and (X0 == X1) (Y0 == Y1 + 1) then F {((X0, Y1), CC1++CC0)|XX} 
+                else {((X0,Y0), CC0)|F {((X1,Y1), CC1)|XX}} ]
+
+def neighbours =
+    [((X,Y),CC) -> let N = length CC in
+        {(X,Y - 1), (X,Y + N)}  ++  
+        (map [Y  -> {(X - 1,Y),(X + 1,Y)}] (from_to (Y - 1) (Y + N))) |> flatten ]
+        
+def main =
+    input |> map unpack |> to_board |> split_board |> [(D0,D1) -> (collate D0, Dict::keys D1)]
+    |> [(NN,SS) -> map [S -> filter [N -> elem S (neighbours N)] NN ] SS]
+    |> filter [N -> length N == 2] |> map (map (do snd |> pack |> to_int)) |> map product |> sum

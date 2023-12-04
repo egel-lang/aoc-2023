@@ -1,0 +1,32 @@
+# Advent of Code (AoC) - day 2, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+data red, green, blue
+
+def input =
+    let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val words = Regex::compile "[0-9]+|red|green|blue"
+
+def to_words =
+    do Regex::matches words |> map ["red" -> red | "green" -> green | "blue" -> blue | N -> to_int N ]
+
+def parse_line =
+    do unpack |> break ((==) ':') |> [(L,R) -> (drop 5 L |> pack |> to_words |> head, 
+              split_on ';' (tail R) |> map (do split_on "," |> map (do pack |> to_words |> chunks 2 |> map [{A,B} -> A B]) |> flatten) ) ]
+
+def to_rgb =
+    [ (R red) (_,G,B) -> (R,G,B) | (G green) (R,_,B) -> (R,G,B) | (B blue) (R,G,_) -> (R,G,B) ]
+
+def max3 = [(R0,G0,B0) (R1,G1,B1) -> (max R0 R1, max G0 G1, max B0 B1)]
+
+def main =
+    input |> map (do parse_line |> [(N, VV) -> (N, map (foldr to_rgb (0,0,0)) VV)])
+          |> map [(N, VV) -> foldr max3 (0,0,0) VV] |> map [(R,G,B) -> R*G*B] |> sum

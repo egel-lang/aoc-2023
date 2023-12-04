@@ -1,0 +1,28 @@
+# Advent of Code (AoC) - day 4, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "[0-9]+|\\|"
+
+def to_card = do Regex::matches number |> tail |> map to_int |> split_on 0
+                 |> [{XX,YY} -> (1, (XX,YY))]
+
+def count = [(N, (XX,YY)) -> (N, length (filter [Y -> elem Y XX] YY))]
+
+def process =
+    [ {} -> {}
+    | {C|CC} -> let (N,M) = count C in let (CC0, CC1) = split_at M CC in
+                {N| process (map [(N0, CC) -> (N0+N, CC)] CC0 ++ CC1)} ]
+
+def main =
+    input |> map to_card |> process |> sum
