@@ -1,0 +1,27 @@
+# Advent of Code (AoC) - day 5, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "[0-9]+"
+
+def parse = do split_at 2 |> [(SS, MM) -> 
+    (head SS |> Regex::matches number |> map to_int, 
+     split_on "" MM |> map (do tail |> map (do Regex::matches number |> map to_int)))]
+
+def to_map =
+    foldr [{D,S,L} F -> [X -> if and (S <= X) (X < S+L) then D + X - S else F X]] id
+
+def main =
+    input |> parse 
+    |> [(SS,FF) -> map to_map FF |> [FF -> map [S -> foldl (|>) S FF]  SS]]
+    |> minimum

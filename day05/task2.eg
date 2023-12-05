@@ -1,0 +1,53 @@
+# Advent of Code (AoC) - day 5, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def concat_map = [ F XX -> map F XX |> flatten ]
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "[0-9]+"
+
+def parse = do split_at 2 |> [(SS, MM) -> 
+    (head SS |> Regex::matches number |> map to_int |> chunks 2 |> map [{X,Y} -> (X,X+Y)],
+     split_on "" MM |> map (do tail |> map (do Regex::matches number |> map to_int |> [{D,S,N} -> (D,S,N)])))]
+
+def intersect =
+    [(X0, Y0) (X1,Y1) -> 
+        if and (X0 <= X1) (X1 < Y0) then (X1, min Y0 Y1)
+        else if and (X1 <= X0) (X0 < Y1) then (X0, min Y0 Y1)
+        else none ]
+
+def substract =
+    [(X0, Y0) (X1, Y1) ->
+        if X0 < X1 then
+            if Y0 < X1 then {(X0,Y0)}
+            else if Y1 < Y0 then {(X0,X1),(Y1,Y0)}
+            else {(X0,X1)}
+        else if X1 < X0 then
+            if Y1 < X0 then {(X0,Y0)}
+            else if Y1 < Y0 then {(Y1,Y0)}
+            else {} 
+        else if Y1 < Y0 then {(Y1,Y0)}
+            else {}]
+
+def rewrite_seed =
+    [{} I -> {I}
+    |{(D,S,N)|RR} I -> [none  -> rewrite_seed RR I 
+                       |(X,Y) -> {(X-S+D,Y-S+D)|concat_map (rewrite_seed RR) (substract I (X,Y))}] 
+                            (intersect I (S,S+N))]
+
+def rewrite_seeds =
+    [RR II -> concat_map (rewrite_seed RR) II]
+
+def rewrites =
+    [RRR II -> foldl [II RR -> rewrite_seeds RR II] II RRR]
+
+def main =
+    input |> parse |> [(II, RRR) -> rewrites RRR II] |> map fst |> minimum
