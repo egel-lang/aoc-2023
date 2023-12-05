@@ -43,11 +43,8 @@ def rewrite_seed =
                        |(X,Y) -> {(X-S+D,Y-S+D)|concat_map (rewrite_seed RR) (substract I (X,Y))}] 
                             (intersect I (S,S+N))]
 
-def rewrite_seeds =
-    [RR II -> concat_map (rewrite_seed RR) II]
-
 def rewrites =
-    [RRR II -> foldl [II RR -> rewrite_seeds RR II] II RRR]
+    [RRR II -> foldl [II RR -> concat_map (rewrite_seed RR) II] II RRR]
 
 def main =
     input |> parse |> [(II, RRR) -> rewrites RRR II] |> map fst |> minimum
