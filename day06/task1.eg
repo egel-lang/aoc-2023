@@ -1,0 +1,23 @@
+# Advent of Code (AoC) - day 5, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "[0-9]+"
+
+def parse = do map (do Regex::matches number |> map to_int) |> [{XX,YY} -> zip XX YY]
+
+def solutions =
+    [(X,T) -> from_to 0 X |> map [T0 -> (X - T0) * T0] |> filter [T0 -> T < T0]] 
+
+def main =
+    input |> parse |> map solutions |> map length |> product
