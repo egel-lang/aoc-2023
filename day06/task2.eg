@@ -1,4 +1,4 @@
-# Advent of Code (AoC) - day 6, task 1
+# Advent of Code (AoC) - day 6, task 2 - brute force solution
 
 import "prelude.eg"
 import "os.ego"
@@ -14,10 +14,10 @@ def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
 val number = Regex::compile "[0-9]+"
 
-def parse = do map (do Regex::matches number |> map to_int) |> [{XX,YY} -> zip XX YY]
+def parse = do map (do Regex::matches number |> foldr [X Y -> X+Y] "" |> to_int) |> [{X,Y} -> (X,Y)]
 
 def solutions =
     [(X,T) -> from_to 0 X |> map [T0 -> (X - T0) * T0] |> filter [T0 -> T < T0]] 
 
 def main =
-    input |> parse |> map solutions |> map length |> product
+    input |> parse |> solutions |> length
