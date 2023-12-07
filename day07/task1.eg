@@ -1,0 +1,43 @@
+# Advent of Code (AoC) - day 7, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def parse = split_on " "
+
+def card_to_ord = 
+    ['A' -> 14|'K' -> 13|'Q' -> 12|'J' -> 11|'T' -> 10 
+    |'9' -> 9|'8' -> 8|'7' -> 7|'6' -> 6
+    |'5' -> 5|'4' -> 4|'3' -> 3|'2' -> 2]
+
+def collate =
+    [ {} -> {}
+    | {XX} -> {XX}
+    | {XX, YY| ZZ} ->
+        if head XX == head YY then collate {XX++YY|ZZ} else
+        {XX | collate {YY|ZZ}} ]
+
+def to_type =
+    do sort |> map [X -> {X}] |> collate |> map length |> sort |>
+       [{5} -> 6 |{1,4} -> 5 |{2,3} -> 4 |{1,1,3} -> 3|{1,2,2} -> 2 |{1,1,1,2} -> 1 |_ -> 0]
+
+def compare_hand =
+    [(T0,CC0,_) (T1,CC1,_) ->
+        if T0 < T1 then true
+        else if T1 < T0 then false
+        else CC0 <= CC1 ]
+
+def main =
+    input |> map (do unpack |> split_on ' ' |> [{HH,NN} -> (map card_to_ord HH, to_int (pack NN))])
+          |> map [(CC,N) -> (to_type CC, CC, N)] |> sort_by compare_hand
+          |> map [(_,_,N) -> N] |> [NN -> zip NN (from_to 1 (length NN))]
+          |> map (uncurry (*)) |> sum
