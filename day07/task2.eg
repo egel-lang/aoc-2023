@@ -7,25 +7,12 @@ using System
 using OS
 using List
 
-def concat_map = [F XX -> map F XX |> flatten]
-
-def combine = 
-    [ {} -> {{}} 
-    | {XX|XXX} -> let YY = combine XXX in concat_map [X -> map [XX -> {X|XX}] YY] XX ]
-
 def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
 def card_to_ord = [C -> index_of C (unpack "J23456789TQKA") ]
 
-def collate =
-    [ {} -> {}
-    | {XX} -> {XX}
-    | {XX, YY| ZZ} ->
-        if head XX == head YY then collate {XX++YY|ZZ} else
-        {XX | collate {YY|ZZ}} ]
-
 def to_type =
-    do sort |> map [X -> {X}] |> collate |> map length |> sort |>
+    do sort |> group |> map length |> sort |>
        [{5} -> 6 |{1,4} -> 5 |{2,3} -> 4 |{1,1,3} -> 3|{1,2,2} -> 2 |{1,1,1,2} -> 1 |_ -> 0]
 
 val cards = unpack "23456789TQKA" |> map card_to_ord
