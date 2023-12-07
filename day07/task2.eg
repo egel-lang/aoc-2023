@@ -33,7 +33,7 @@ val cards = unpack "23456789TQKA" |> map card_to_ord
 def jokers = do map [_ -> cards] |> combine
 
 def best =
-    do split ((==) 0) |> [(JJ,CC) -> map ((++) CC) (jokers JJ)] |> map to_type |> sort |> last
+    do split ((==) 0) |> [(JJ,CC) -> map ((++) CC) (jokers JJ)] |> map to_type |> maximum
 
 def main =
     input |> map (do unpack |> split_on ' ' |> [{HH,NN} -> (map card_to_ord HH, to_int (pack NN))])
