@@ -1,8 +1,7 @@
-# Advent of Code (AoC) - day 8, task 1
+# Advent of Code (AoC) - day 8, task 2
 
 import "prelude.eg"
 import "os.ego"
-import "generator.eg"
 import "dictionary.eg"
 import "regex.ego"
 
@@ -10,23 +9,28 @@ using System
 using OS
 using List
 
+def gcd = [A 0 -> A | A B -> gcd B (A % B)]
+
+def lcm = [A B -> (A * B) / (gcd A B)]
+
 def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
-val node = Regex::compile "[A-Z]+"
+val node = Regex::compile "[0-9|A-Z]+"
 
 def parse = do split_on "" |> [{{HH}, NN} -> (unpack HH, map (Regex::matches node) NN) ]
 
 def lr = [ HH N -> List::nth (N % (List::length HH)) HH ]
 
 def start = 
-    [(HH, NN) -> (0, HH, "AAA", foldr [{A,B,C} D -> Dict::set D A (B,C)] Dict::dict NN)]
+    [(HH, NN) ->
+        let D = foldr [{A,B,C} D -> Dict::set D A (B,C)] Dict::dict NN in
+        map [N -> (0, HH, N, D)] (filter [N -> last (unpack N) == 'A'] (Dict::keys D))]
 
 def step =
     [(N, HH, A, D) -> (N+1, HH, let C = Dict::get D A in ['L' -> fst C |'R' -> snd C] (lr HH N), D)]
 
 def trace =
-    [(N, HH, "ZZZ", D) -> N
-    |(N, HH, A, D) -> step (N, HH, A, D) |> trace ]
+    [(N, HH, A, D) -> if last (unpack A) == 'Z' then N else step (N, HH, A, D) |> trace ]
 
 def main =
-    input |> parse |> start |> trace
+    input |> parse |> start |> map trace |> foldl lcm 1
