@@ -1,0 +1,32 @@
+# Advent of Code (AoC) - day 7, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val node = Regex::compile "[A-Z]+"
+
+def parse = do split_on "" |> [{{HH}, NN} -> (unpack HH, map (Regex::matches node) NN) ]
+
+def lr = [ HH N -> List::nth (N % (List::length HH)) HH ]
+
+def start = 
+    [(HH, NN) -> (0, HH, "AAA", foldr [{A,B,C} D -> Dict::set D A (B,C)] Dict::dict NN)]
+
+def step =
+    [(N, HH, A, D) -> (N+1, HH, let C = Dict::get D A in ['L' -> fst C |'R' -> snd C] (lr HH N), D)]
+
+def trace =
+    [(N, HH, "ZZZ", D) -> N
+    |(N, HH, A, D) -> step (N, HH, A, D) |> trace ]
+
+def main =
+    input |> parse |> start |> trace
