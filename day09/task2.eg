@@ -20,7 +20,7 @@ val number = Regex::compile "-?[0-9]+"
 
 def parse = map (do Regex::matches number |> map to_int)
 
-def predict = do scan_while [XX -> (zip_with_tail (-) XX)] (all ((==) 0)) |> map last |> sum
+def predict = do scan_while (zip_with_tail (-)) (all ((==) 0)) |> map last |> sum
 
 def main =
     input |> parse |> map reverse |> map predict |> sum
