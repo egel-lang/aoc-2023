@@ -1,0 +1,26 @@
+# Advent of Code (AoC) - day 9, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def zip_with_tail = [F XX -> zip_with F (tail XX) XX]
+
+def scan_while = [F G X -> if G X then {X} else {X|scan_while F G (F X)}]
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val number = Regex::compile "-?[0-9]+"
+
+def parse = map (do Regex::matches number |> map to_int)
+
+def predict = do scan_while [XX -> (zip_with_tail (-) XX)] (all ((==) 0)) |> map last |> sum
+
+def main =
+    input |> parse |> map predict |> sum
