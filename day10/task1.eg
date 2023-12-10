@@ -1,0 +1,40 @@
+# Advent of Code (AoC) - day 10, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def iter_until = [F G X -> print X "\n"; if G X then X else  iter_until F G (F X)]
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+    do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+val pipes =
+    ['|' -> {(-1,0),(1,0)} |'-' -> {(0,-1),(0,1)} |'L' -> {(-1,0),(0,1)} |'J' -> {(-1,0),(0,-1)} 
+    |'7' -> {(0,-1),(1,0)} |'F' -> {(0,1),(1,0)}  |'.' -> {} |'S' -> {(-1,0),(0,-1),(1,0),(0,1)}]
+
+def positions = [D P -> do map (add P) |> filter (Dict::has D) ]
+
+def connect = [D P -> positions D P (pipes (Dict::get D P))]
+
+def connected = [D P -> connect D P |> filter [P0 -> elem P (connect D P0)]]
+
+def start = do Dict::to_list |> filter (do snd |> ((==) 'S')) |> head |> fst
+
+def forward = [{} PP -> PP | {P|_} PP -> filter ((/=) P) PP]
+
+def loop = [D S PP P -> 
+    if and (S == P) (PP /= {}) then PP
+    else foldr [P0 none -> loop D S {P|PP} P0|P0 PP -> {P|PP}] none (connected D P |> forward PP) ]
+
+def main =
+    input |> map unpack |> to_board |> [D -> loop D (start D) {} (start D)] |> length |> [X -> X / 2]
