@@ -15,11 +15,11 @@ def to_board =
 
 def stars = [CC -> filter (do snd |> ((==) '#')) CC |> map fst ]
 
-def substract = [ XX YY -> filter [X -> not (elem X YY)] XX ]
+def subtract = [ XX YY -> filter [X -> not (elem X YY)] XX ]
 
 def empty =
     [SS -> let (MX,MY) = maximum SS in let M = max MX MY in
-            (substract (from_to 0 M) (map fst SS), substract (from_to 0 M) (map snd SS)) ]
+            (subtract (from_to 0 M) (map fst SS), subtract (from_to 0 M) (map snd SS)) ]
 
 def expand =
     [(XX,YY) -> 
