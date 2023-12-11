@@ -1,0 +1,32 @@
+# Advent of Code (AoC) - day 11, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+    do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten 
+
+def stars = [CC -> filter (do snd |> ((==) '#')) CC |> map fst ]
+
+def substract = [ XX YY -> filter [X -> not (elem X YY)] XX ]
+
+def empty =
+    [SS -> let (MX,MY) = maximum SS in let M = max MX MY in
+            (substract (from_to 0 M) (map fst SS), substract (from_to 0 M) (map snd SS)) ]
+
+def expand =
+    [(XX,YY) -> 
+        map [(X,Y) -> (X + 999999 * (length (filter [X0 -> X0 <= X] XX)), 
+                       Y + 999999 * (length (filter [Y0 -> Y0 <= Y] YY)))] ]
+
+def main =
+    input |> map unpack |> to_board |> stars |> [SS -> expand (empty SS) SS]
+    |> [SS -> combine {SS,SS}] |> map [{(X0,Y0),(X1,Y1)} -> abs (X0 - X1) + abs (Y0 - Y1)]
+    |> sum |> [X -> X / 2]

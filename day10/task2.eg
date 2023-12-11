@@ -14,12 +14,11 @@ def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 def to_board =
     do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
 
-def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
-
 val pipes =
     ['|' -> {(-1,0),(1,0)} |'-' -> {(0,-1),(0,1)} |'L' -> {(-1,0),(0,1)} |'J' -> {(-1,0),(0,-1)} 
     |'7' -> {(0,-1),(1,0)} |'F' -> {(0,1),(1,0)}  |'.' -> {} |'S' -> {(-1,0),(0,-1),(1,0),(0,1)}]
 
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
 def positions = [D P -> do map (add P) |> filter (Dict::has D) ]
 def connect = [D P -> positions D P (pipes (Dict::get D P))]
 def connected = [D P -> connect D P |> filter [P0 -> elem P (connect D P0)]]
