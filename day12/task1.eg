@@ -1,0 +1,27 @@
+# Advent of Code (AoC) - day 12, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def iter_until = [F G X -> print X "\n"; if G X then X else  iter_until F G (F X)]
+
+def lexeme = Regex::compile "[\\.|\\?|#]+|[0-9]+"
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def parse = do Regex::matches lexeme |> [ XX -> (unpack (head XX), map to_int (tail XX))]
+
+def permute = do map ['?' -> {'.','#'} | X -> {X}] |> combine
+
+def count = do group |> filter (all ((==) '#')) |> map length
+
+def main =
+    input |> map parse |> map [(XX,NN) -> permute XX |> map count |> filter ((==) NN)]
+          |> map length |> sum
