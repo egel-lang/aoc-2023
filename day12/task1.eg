@@ -3,14 +3,11 @@
 import "prelude.eg"
 import "os.ego"
 import "regex.ego"
-import "generator.eg"
 import "dictionary.eg"
 
 using System
 using OS
 using List
-
-def iter_until = [F G X -> print X "\n"; if G X then X else  iter_until F G (F X)]
 
 def lexeme = Regex::compile "[\\.|\\?|#]+|[0-9]+"
 
