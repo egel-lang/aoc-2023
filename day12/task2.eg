@@ -1,0 +1,40 @@
+#Advent of Code (AoC) - day 12, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def reduce = [F {X} -> X | F {X,Y|XX} -> reduce F {F X Y|XX}]
+
+def iter_until = [F G X -> print X "\n"; if G X then X else  iter_until F G (F X)]
+
+def lexeme = Regex::compile "[\\.|\\?|#]+|[0-9]+"
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def parse = do Regex::matches lexeme |> [ XX -> (unpack (head XX), map to_int (tail XX))]
+
+def expand = [(XX, NN) -> (repeat 5 XX |> reduce [XX YY -> XX ++ {'?'} ++ YY], repeat 5 NN |> flatten)]
+
+def count = 
+    [F ({'.'},NN) -> if NN == {} then 1 else 0
+    |F ({'#'},NN) -> if NN == {1} then 1 else 0
+    |F ({'?'|XX},NN) -> F ({'.'|XX},NN) + F ({'#'|XX},NN)
+    |F ({'.'|XX},NN) -> F (XX,NN)
+    |F ({'#','.'|XX},{1|NN}) -> F ({'.'|XX},NN)
+    |F ({'#','.'|XX},NN) -> 0
+    |F ({'#','#'|XX},{1|NN}) -> 0
+    |F ({'#','#'|XX},{N|NN}) -> F ({'#'|XX},{N - 1|NN})
+    |F ({'#','?'|XX},NN) -> F ({'#','.'|XX},NN) + F ({'#','#'|XX},NN)
+    |F (XX,{}) -> 0 ]
+    
+def memo = [D F X -> if Dict::has D X then Dict::get D X else let Y = F (memo D F) X in Dict::set D X Y; Y]
+
+def main =
+    input |> map parse |> map expand |> map [P -> print P "\n"; (memo Dict::dict count) P] |> sum

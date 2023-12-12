@@ -1,4 +1,4 @@
-# Advent of Code (AoC) - day 12, task 1
+#Advent of Code (AoC) - day 12, task 1
 
 import "prelude.eg"
 import "os.ego"
@@ -18,10 +18,21 @@ def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
 def parse = do Regex::matches lexeme |> [ XX -> (unpack (head XX), map to_int (tail XX))]
 
-def permute = do map ['?' -> {'.','#'} | X -> {X}] |> combine
-
-def count = do group |> filter (all ((==) '#')) |> map length
-
+def count = [({},{}) -> 1
+            |({'.'},NN) -> if NN == {} then 1 else 0
+            |({'#'},NN) -> if NN == {1} then 1 else 0
+            |({'?'},NN) -> count ({'.'},NN) + count ({'#'},NN)
+            |({'.','.'|XX},NN) -> count ({'.'|XX},NN)
+            |({'.','#'|XX},NN) -> count ({'#'|XX},NN)
+            |({'.','?'|XX},NN) -> count ({'.','.'|XX},NN) + count ({'.','#'|XX},NN)
+            |({'#','.'|XX},{1|NN}) -> count ({'.'|XX},NN)
+            |({'#','.'|XX},NN) -> 0
+            |({'#','#'|XX},{1|NN}) -> 0
+            |({'#','#'|XX},{N|NN}) -> count ({'#'|XX},{N - 1|NN})
+            |({'#','?'|XX},NN) -> count ({'#','.'|XX},NN) + count ({'#','#'|XX},NN)
+            |({'?', X |XX},NN) -> count ({'.',X|XX},NN) + count ({'#',X|XX},NN)
+            |(XX,{}) -> 0
+            |X -> throw ("error" X)]
+    
 def main =
-    input |> map parse |> map [(XX,NN) -> permute XX |> map count |> filter ((==) NN)]
-          |> map length |> sum
+    input |> map parse |> map count |> sum
