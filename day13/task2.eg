@@ -1,0 +1,25 @@
+#Advent of Code (AoC) - day 13, task 2
+
+import "prelude.eg"
+import "os.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def parse = do split_on "" |> map (map unpack)
+
+def differ = [X Y -> if X /= Y then 1 else 0]
+
+def reflect = 
+    do [XX -> map [N -> (N, split_at N XX)] (from_to 1 (length XX - 1))]
+    |> map [(N,(XX,YY)) -> (N, zip (reverse XX) YY)] 
+    |> map [(N,XX) -> (N, map [(XX,YY) -> zip XX YY |> map (uncurry differ) |> sum] XX |> sum)]
+    |> filter [(N,D) -> D == 1] |> map fst
+
+def main =
+    input |> parse 
+    |> [XX -> concat_map reflect (map transpose XX) ++ map ((*) 100) (concat_map reflect XX)] 
+    |> sum
