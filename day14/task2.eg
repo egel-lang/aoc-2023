@@ -12,7 +12,6 @@ def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
 def slide0 =
     [ XX YY {}  -> XX ++ YY
-    | XX YY {'.'} -> XX ++ YY ++ {'.'}
     | XX YY {'#'|ZZ} -> XX ++ YY ++ {'#'| slide0 {} {} ZZ}
     | XX YY {'O'|ZZ} -> slide0 {'O'|XX} YY ZZ
     | XX YY {'.'|ZZ} -> slide0 XX {'.'|YY} ZZ ]
