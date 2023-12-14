@@ -21,8 +21,7 @@ def slide0 =
 
 def slide = do transpose |> map (slide0 {}) |> transpose
 
-def turn =
-    [ {} -> {} | {XX} -> map [X->{X}] XX | {XX|XXX} -> zip_with [XX X -> XX ++ {X}] (turn XXX) XX ]
+def turn = do transpose |> map reverse
 
 def cycle = iter 4 (do slide |> turn) 
 
