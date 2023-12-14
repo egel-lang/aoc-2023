@@ -2,9 +2,7 @@
 
 import "prelude.eg"
 import "os.ego"
-import "regex.ego"
 import "dictionary.eg"
-import "generator.eg"
 
 using System
 using OS
