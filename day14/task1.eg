@@ -1,0 +1,31 @@
+#Advent of Code (AoC) - day 14, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "dictionary.eg"
+import "generator.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val lexeme = Regex::compile "-?[0-9]+"
+
+def slide =
+    [ XX {}  -> XX
+    | XX {'.'} -> XX ++ {'.'}
+    | XX {'#'|YY} -> XX ++ {'#'| slide {} YY}
+    | XX {'O'|YY} -> slide {'O'|XX} YY
+    | XX {'.'|YY} -> slide (XX++{'.'}) YY ]
+
+def count =
+    do [ XX -> zip (from_to 1 (length XX)) (reverse XX) ]
+    |> filter (do snd |> ((==) 'O')) |> map fst
+
+def test = 
+    do transpose |> map pack |> map [X -> print X"\n"]
+def main =
+    input |> map unpack |> transpose |> map (slide {}) |> concat_map count |> sum

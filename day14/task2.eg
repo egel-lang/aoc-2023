@@ -1,0 +1,43 @@
+#Advent of Code (AoC) - day 14, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "dictionary.eg"
+import "generator.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def slide0 =
+    [ XX {}  -> XX
+    | XX {'.'} -> XX ++ {'.'}
+    | XX {'#'|YY} -> XX ++ {'#'| slide0 {} YY}
+    | XX {'O'|YY} -> slide0 {'O'|XX} YY
+    | XX {'.'|YY} -> slide0 (XX++{'.'}) YY ]
+
+def slide = do transpose |> map (slide0 {}) |> transpose
+
+def turn =
+    [ {} -> {} | {XX} -> map [X->{X}] XX | {XX|XXX} -> zip_with [XX X -> XX ++ {X}] (turn XXX) XX ]
+
+def cycle = iter 4 (do slide |> turn) 
+
+def count =
+    do transpose |> concat_map [ XX -> zip (from_to 1 (length XX)) (reverse XX) ]
+    |> filter (do snd |> ((==) 'O')) |> map fst |> sum
+
+def iter_fast = 
+    [D I N F X -> 
+        if I == N then X
+        else if Dict::has D X then let J = Dict::get D X in
+            if (I + (I-J)) <= N then iter_fast D (I + (I-J)*((N-I)/(I-J))) N F X
+            else iter_fast D (I+1) N F (F X)
+        else Dict::set D X I; iter_fast D (I+1) N F (F X)]
+
+def main =
+    input |> map unpack |> iter_fast Dict::dict 0 1000000000 cycle |> count
+
