@@ -28,7 +28,6 @@ def count =
 
 def iter_fast = 
     [D I N F X -> 
-        print I "\n";
         if I == N then X
         else if Dict::has D X then let J = Dict::get D X in
             Dict::get (Dict::inverse D) (J+((N-J)%(I-J))) |> head
