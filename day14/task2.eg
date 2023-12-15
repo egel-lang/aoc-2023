@@ -30,7 +30,7 @@ def iter_fast =
     [D I N F X -> 
         if I == N then X
         else if Dict::has D X then let J = Dict::get D X in
-            Dict::to_list D |> filter (do snd |> ((==) (J+((N-J)%(I-J))))) |> head |> fst
+            Dict::get (Dict::inverse D) (J+((N-J)%(I-J))) |> head
         else Dict::set D X I; iter_fast D (I+1) N F (F X)]
 
 def main =
