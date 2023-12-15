@@ -1,0 +1,28 @@
+#Advent of Code (AoC) - day 15, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def hash = foldl [N C -> ((N + String::ord C) * 17) % 256] 0
+
+def parse = do head |> unpack |> split_on ',' 
+            |> map (do split_on '=' |> [{XX} -> init XX | {XX,YY} -> (XX, (pack YY|> to_int))])
+
+def boxes = Dict::from_list (from_to 0 255 |> map [N -> (N,{})])
+
+def boxes_adjust = 
+    [D (L,N) -> Dict::adjust D (hash L) (do break (do fst |> ((==) L)) |> [(XX,{}) -> XX ++ {(L,N)} |(XX,YY) -> XX ++ {(L,N)} ++ (tail YY)])
+    |D L -> Dict::adjust D (hash L) (filter (do fst |> ((/=) L))) ]
+
+def count =
+    do Dict::to_list |> concat_map [(N, LL) -> zip_with [(L,F) P -> (N+1) * F * P] LL (from_to 1 (length LL))] |> sum
+
+def main =
+    input |> parse |> foldl boxes_adjust boxes |> count

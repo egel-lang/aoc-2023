@@ -1,0 +1,22 @@
+#Advent of Code (AoC) - day 15, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "dictionary.eg"
+import "generator.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+val lexeme = Regex::compile "-?[0-9]+"
+
+def hash = foldl [N C -> ((N + String::ord C) * 17) % 256] 0
+
+def parse = do head |> unpack |> split_on ',' 
+
+def main =
+    input |> parse |> map hash |> sum
