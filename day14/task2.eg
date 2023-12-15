@@ -10,17 +10,17 @@ using List
 
 def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
-def slide0 =
-    [ XX YY {}  -> XX ++ YY
-    | XX YY {'#'|ZZ} -> XX ++ YY ++ {'#'| slide0 {} {} ZZ}
-    | XX YY {'O'|ZZ} -> slide0 {'O'|XX} YY ZZ
-    | XX YY {'.'|ZZ} -> slide0 XX {'.'|YY} ZZ ]
+def slide1 =
+    [ XX {}  -> XX
+    | XX {'#'|YY} -> XX ++ {'#'| slide1 {} YY}
+    | XX {'O'|YY} -> {'O' | slide1 XX YY}
+    | XX {'.'|YY} -> slide1 {'.'|XX} YY ]
 
-#def slide = do transpose |> map (slide0 {} {}) |> transpose
+#def slide = do transpose |> map (slide1 {}) |> transpose
 #def turn = do transpose |> map reverse
 #def cycle = iter 4 (do slide |> turn) 
 
-def cycle = iter 4 (do transpose |> map (slide0 {} {}) |> map reverse)
+def cycle = iter 4 (do transpose |> map (slide1 {}) |> map reverse)
 
 def count =
     do transpose |> concat_map [ XX -> zip (from_to 1 (length XX)) (reverse XX) ]
@@ -28,6 +28,7 @@ def count =
 
 def iter_fast = 
     [D I N F X -> 
+        print I "\n";
         if I == N then X
         else if Dict::has D X then let J = Dict::get D X in
             Dict::get (Dict::inverse D) (J+((N-J)%(I-J))) |> head
