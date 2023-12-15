@@ -3,6 +3,7 @@
 import "prelude.eg"
 import "os.ego"
 import "dictionary.eg"
+import "regex.ego"
 
 using System
 using OS
@@ -10,10 +11,11 @@ using List
 
 def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 
-def hash = foldl [N C -> ((N + String::ord C) * 17) % 256] 0
+def groups = [ R -> let C = Regex::compile R in do Regex::matches C |> map (Regex::group C) ]
 
-def parse = do head |> unpack |> split_on ',' 
-            |> map (do split_on '=' |> [{XX} -> init XX | {XX,YY} -> (XX, (pack YY|> to_int))])
+def parse = do head |> groups "([a-z]+)-|([a-z]+)=([0-9]+)" |> map [{X,"",""} -> unpack X | {_,X,Y} -> (unpack X, to_int Y) ]
+
+def hash = foldl [N C -> ((N + String::ord C) * 17) % 256] 0
 
 def boxes = Dict::from_list (from_to 0 255 |> map [N -> (N,{})])
 
