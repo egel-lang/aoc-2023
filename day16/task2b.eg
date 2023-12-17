@@ -1,0 +1,72 @@
+# Advent of Code (AoC) - day 3, task 1
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+## lazy lists primitives
+data lazy_nil, lazy_cons
+def is_lazy_nil = ((==) lazy_nil)
+def lazy_head = [(lazy_cons X F R) -> X]
+def lazy_tail = [(lazy_tail X F R) -> if get_ref R == none then let XX = F none in set_ref R XX; XX else get_ref R]
+def lazy_elem = [ X XX -> if is_lazy_nil XX then false else if X == lazy_head XX then true else lazy_elem X (lazy_tail XX) ]
+def lazy_post = [ XX X -> if is_lazy_nil XX then lazy_cons X [_ -> lazy_nil] (ref none) else lazy_cons (lazy_head XX) [_ -> lazy_post (lazy_tail XX) X] (ref none)]
+def lazy_union = [ XX YY -> if is_lazy_nil YY then XX else if lazy_elem (lazy_head YY) XX then XX else lazy_union (lazy_post XX (lazy_head YY)) (lazy_tail YY) ]
+def lazy_from_list = [ {} -> lazy_nil | {X|XX} -> lazy_cons X [_ -> lazy_from_list XX] (ref none) ]
+def lazy_to_list = [ XX -> if is_lazy_nil XX then {} else {lazy_head XX|lazy_to_list (lazy_tail XX)} ]
+
+# beam code
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+def mirror = [(X,Y) -> (-X,-Y)]
+def step = [(P,V) -> (add P V, V)]
+def horizontal = do fst |> ((==) 0)
+
+def beam_step =
+    [D (P,V) ->
+        [ none -> {}
+        | '.'  -> beam_step D (step (P,V))
+        | '|'  -> if horizontal V then {step (P,swap V), step (P,mirror (swap V))} else {step (P,V)}
+        | '-'  -> if horizontal V then {step (P,V)} else {step (P,swap V), step (P,mirror (swap V))}
+        | '/'  -> {step (P, mirror (swap V))}
+        | '\\' -> {step (P, swap V)} ]
+        (if Dict::has D P then Dict::get D P else none) ]
+
+# make use of a mutable cache for the moment
+val beam_set_cache = Dict::dict
+def beam_set_init = 
+    [D -> Dict::keys D |> maximum |> [(MX,MY) -> combine {from_to 0 MX, from_to 0 MY, {(0,1),(0,-1),(1,0),(-1,0)}}]
+    |> foldl [D {X,Y,V} -> Dict::set D ((X,Y),V) (lazy_cons ((X,Y),V) [_ -> foldl lazy_union lazy_nil (map beam_set_lazy (beam_step D ((X,Y),V)))] (ref none))]
+             beam_set_cache ]
+def beam_set_lazy = Dict::get beam_set_cache
+def beam_set = beam_set_lazy |> lazy_to_list
+
+def energize =
+    [D E (P,V) ->
+        [ none -> E
+        | '.'  -> energize D (Dict::set E P '#') (step (P,V))
+        | _    -> Dict::set E P '#' ] (if Dict::has D P then Dict::get D P else none) ]
+
+def count = [D S -> print S "\n"; beam_set D S |> foldl (energize D) Dict::dict |> Dict::keys |> length]  
+
+def edges =
+    do Dict::keys |> maximum |> [(MX,MY) ->
+    let UP = {from_to 0 MX,{0},{(0,1)}} in let DOWN = {from_to 0 MX,{MY},{(0,-1)}} in
+    let LEFT = {{0},from_to 0 MY,{(1,0)}} in let RIGHT = {{MX},from_to 0 MY,{(-1,0)}} in 
+        concat_map combine {UP,DOWN,LEFT,RIGHT} |> map [{X,Y,V} -> ((X,Y),V)] ]
+
+def main = input |> map unpack |> to_board |> [D -> beam_set_init D] |> Dict::to_list
+#input |> map unpack |> to_board |> [D -> map (count D) (edges D)] |> maximum

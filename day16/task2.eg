@@ -1,0 +1,54 @@
+# Advent of Code (AoC) - day 3, task 1
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+def mirror = [(X,Y) -> (-X,-Y)]
+def step = [(P,V) -> (add P V, V)]
+def horizontal = do fst |> ((==) 0)
+
+def beam =
+    [D (P,V) ->
+        [ none -> {}
+        | '.'  -> beam D (step (P,V))
+        | '|'  -> if horizontal V then {step (P,swap V), step (P,mirror (swap V))} else {step (P,V)}
+        | '-'  -> if horizontal V then {step (P,V)} else {step (P,swap V), step (P,mirror (swap V))}
+        | '/'  -> {step (P, mirror (swap V))}
+        | '\\' -> {step (P, swap V)} ]
+        (if Dict::has D P then Dict::get D P else none) ]
+
+def fix_set = 
+    [ F YY {}     -> YY
+    | F YY {X|XX} -> if elem X YY then fix_set F YY XX else fix_set F {X|YY} (F X ++ XX) ]
+
+def energize =
+    [D E (P,V) ->
+        [ none -> E
+        | '.'  -> energize D (Dict::set E P '#') (step (P,V))
+        | _    -> Dict::set E P '#' ] (if Dict::has D P then Dict::get D P else none) ]
+
+def count = [D S -> print S "\n"; fix_set (beam D) {} {S} |> foldl (energize D) Dict::dict |> Dict::keys |> length]  
+
+def edges =
+    do Dict::keys |> maximum |> [(MX,MY) ->
+    let UP = {from_to 0 MX,{0},{(0,1)}} in let DOWN = {from_to 0 MX,{MY},{(0,-1)}} in
+    let LEFT = {{0},from_to 0 MY,{(1,0)}} in let RIGHT = {{MX},from_to 0 MY,{(-1,0)}} in 
+        concat_map combine {UP,DOWN,LEFT,RIGHT} |> map [{X,Y,V} -> ((X,Y),V)] ]
+
+def main = input |> map unpack |> to_board |> [D -> map (count D) (edges D)] |> maximum
