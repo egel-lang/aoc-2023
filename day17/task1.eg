@@ -28,13 +28,21 @@ def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
 
 val dirs = {(0,1),(0,-1),(1,0),(-1,0)}
 
-val dirs3 = from_to 1 4 |> concat_map [N -> map [P -> zip_with mul (from_to 0 N) (repeat (N+1) P)] dirs]
+def starts = [D -> let S = (0,0) in let W = Dict::get D S in {((S,false),W),((S,true),W)} ]
 
-val paths = [P -> map (add P) dirs3]
+def end = do Dict::keys |> maximum 
 
-def to_edges = [D -> 
-    Dict::keys D |> concat_map [P -> combine {{P}, map (add P) dirs |> filter (Dict::has D)}]
-    |> map [{P,Q} -> (P, Dict::get D P, Q)] ]
+def ends = [D -> let E = end D in {(E,false),(E,true)}]
+
+val dirs3 = from_to 1 3 |> concat_map [N -> map [P -> zip_with mul (from_to 0 N) (repeat (N+1) P)] dirs]
+
+def paths = [D P -> map (map (add P)) dirs3 |> filter (all (Dict::has D))]
+
+def path_to_edge = 
+    [D PP -> let P0 = head PP in let P1 = last PP in let B = fst P0 == fst P1 in
+        ((P0,B), foldl [N P -> N + Dict::get D P] 0 (tail PP), (P1, not B)) ]
+
+def to_edges = [D -> Dict::keys D |> concat_map (paths D) |> map (path_to_edge D)]
 
 def to_graph = 
     foldl [G (P,E,Q) -> if Dict::has G P then Dict::set G P {(E,Q)|Dict::get G P} else Dict::set G P {(E,Q)} ] Dict::dict
@@ -50,10 +58,9 @@ def shortest_run =
             shortest_run G V Q D ]
 
 def shortest = 
-    [G S -> shortest_run G Dict::dict (pqueue_push pqueue 0 S) (Dict::set Dict::dict S 0)]
-
-def end = do Dict::keys |> maximum 
+    [G S -> shortest_run G Dict::dict (foldl [Q (P,W) -> pqueue_push Q W P] pqueue S) (foldl [D (P,W) -> Dict::set D P 0] Dict::dict S)]
 
 def main =
-    input |> parse |> [D -> let E = end D in to_edges D |> to_graph |> [G -> shortest G (0,0) ]
-    |> [S -> Dict::get S E + Dict::get D E]]
+    input |> parse |> [D -> to_edges D |> to_graph ]
+    #input |> parse |> [D -> let E = end D in to_edges D |> to_graph |> [G -> shortest G (0,0) ]
+    #|> [S -> Dict::get S E + Dict::get D E]]
