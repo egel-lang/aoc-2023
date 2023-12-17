@@ -32,6 +32,7 @@ def shortest_run =
     [ G V Q D -> 
         if pqueue_empty Q then D else 
         let (N, P0) = pqueue_top Q in pqueue_pop Q;
+        if Dict::has V P0 then shortest_run G V Q D else
         let V = Dict::set V P0 1 in
         let ADJ = Dict::get G P0 |> filter [(_,P1) -> not (Dict::has V P1)] in
         let D = foldl [D (W,P1) -> Dict::set D P1 (if Dict::has D P1 then min (N+W) (Dict::get D P1) else N+W)] D ADJ in
