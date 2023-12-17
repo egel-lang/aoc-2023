@@ -15,22 +15,11 @@ def input = let L = read_line stdin in if eof stdin then {} else {L | input}
 def to_board =
    do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
 
-def print_board =
-    [ B -> let KK = Dict::keys B in
-        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
-               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
-
 def parse = do map unpack |> map (map to_int) |> to_board
-
-def mul = [N (X,Y) -> (N*X,N*Y)]
 
 def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
 
-val dirs = {(0,1),(0,-1),(1,0),(-1,0)}
-
-val dirs3 = from_to 1 4 |> concat_map [N -> map [P -> zip_with mul (from_to 0 N) (repeat (N+1) P)] dirs]
-
-val paths = [P -> map (add P) dirs3]
+val dirs = {(0,-1),(0,1),(-1,0),(1,0)}
 
 def to_edges = [D -> 
     Dict::keys D |> concat_map [P -> combine {{P}, map (add P) dirs |> filter (Dict::has D)}]
