@@ -45,11 +45,10 @@ def beam_step =
         | '\\' -> {step (P, swap V)} ]
         (if Dict::has D P then Dict::get D P else none) ]
 
-# make use of a mutable cache for the moment
 val beam_set_cache = Dict::dict
 def beam_set_init = 
     [D -> Dict::keys D |> maximum |> [(MX,MY) -> combine {from_to 0 MX, from_to 0 MY, {(0,1),(0,-1),(1,0),(-1,0)}}]
-    |> foldl [D {X,Y,V} -> Dict::set D ((X,Y),V) (lazy_cons ((X,Y),V) [_ -> foldl lazy_union lazy_nil (map beam_set_lazy (beam_step D ((X,Y),V)))] (ref none))]
+    |> foldl [D {X,Y,V} -> Dict::set D ((X,Y),V) (foldl lazy_union (lazy_cons ((X,Y),V) [_ -> lazy_nil] (ref none)) (map beam_set_lazy (beam_step D ((X,Y),V))))]
              beam_set_cache ]
 def beam_set_lazy = Dict::get beam_set_cache
 def beam_set = beam_set_lazy |> lazy_to_list
@@ -68,5 +67,5 @@ def edges =
     let LEFT = {{0},from_to 0 MY,{(1,0)}} in let RIGHT = {{MX},from_to 0 MY,{(-1,0)}} in 
         concat_map combine {UP,DOWN,LEFT,RIGHT} |> map [{X,Y,V} -> ((X,Y),V)] ]
 
-def main = input |> map unpack |> to_board |> [D -> beam_set_init D] |> Dict::to_list
+def main = input |> map unpack |> to_board |> [D -> beam_set_init D; beam_set ((0,0),(0,1))]
 #input |> map unpack |> to_board |> [D -> map (count D) (edges D)] |> maximum
