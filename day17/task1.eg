@@ -1,0 +1,56 @@
+# Advent of Code (AoC) - day 3, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "pqueue.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def parse = do map unpack |> map (map to_int) |> to_board
+
+def mul = [N (X,Y) -> (N*X,N*Y)]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+val dirs = {(0,1),(0,-1),(1,0),(-1,0)}
+
+val dirs3 = from_to 1 4 |> concat_map [N -> map [P -> zip_with mul (from_to 0 N) (repeat (N+1) P)] dirs]
+
+val paths = [P -> map (add P) dirs3]
+
+def to_edges = [D -> 
+    Dict::keys D |> concat_map [P -> combine {{P}, map (add P) dirs |> filter (Dict::has D)}]
+    |> map [{P,Q} -> (P, Dict::get D P, Q)] ]
+
+def to_graph = foldl [G (P,E,Q) -> if Dict::has G P then Dict::set G P {(E,Q)|Dict::get G P} else Dict::set G P {(E,Q)} ] Dict::dict
+
+def shortest_run = 
+    [ G V Q D -> 
+        if pqueue_empty Q then D else 
+        let (N, P0) = pqueue_top Q in pqueue_pop Q;
+        let V = Dict::set V P0 1 in
+        let ADJ = Dict::get G P0 |> filter [(_,P1) -> not (Dict::has V P1)] in
+        let D = foldl [D (W,P1) -> Dict::set D P1 (if Dict::has D P1 then min (N+W) (Dict::get D P1) else N+W)] D ADJ in
+        let Q = foldl [Q (_,P1) -> pqueue_push Q (Dict::get D P1) P1] Q ADJ in
+            shortest_run G V Q D ]
+
+def shortest = 
+    [G S E -> shortest_run G Dict::dict (pqueue_push pqueue 0 S) (Dict::set Dict::dict S 0) |> Dict::to_list]
+
+def main =
+#    input |> parse |> to_edges 
+    input |> parse |> to_edges |> to_graph |> [G -> shortest G (0,0) (1,1)]
