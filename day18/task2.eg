@@ -1,0 +1,46 @@
+# Advent of Code (AoC) - day 18, task 2
+
+import "prelude.eg"
+import "os.ego"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def group = do Regex::compile |> [R -> Regex::group R] 
+
+def parse = do map (group "([A-Z]) ([0-9]+) \\(#([0-9a-f]+)\\)") 
+                    |> map [{D,L,RGB} -> (head (unpack D), to_int L, unpack RGB)]
+
+def mul = [N (X,Y) -> (N*X,N*Y)]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+def product = [(X0,Y0) (X1,Y1) -> (X0 * Y1) - (X1 * Y0) ]
+
+def points =
+    let F = ['U' -> (-1,0) |'D' -> (1,0) |'L' -> (0,-1) |'R' -> (0,1)] in
+    do foldl [{P|PP} (D,L,_) -> {add (mul L (F D)) P,P|PP}] {(0,0)} |> reverse
+
+def shoelace =
+    [PP -> let N = length PP in 
+        map [I -> product (List::nth I PP) (List::nth ((I+1)%N) PP)] (from_to 0 (N - 1))
+        |> sum |> [N -> (abs N)/2] ]
+
+def perim = do map (proj 2) |> sum |> [N -> N/2]
+
+def hex =
+    do map
+        ['0' -> 0 |'1' -> 1 |'2' -> 2 |'3' -> 3 |'4' -> 4 |'5' -> 5 |'6' -> 6 |'7' -> 7 
+        |'8' -> 8 |'9' -> 9 |'a' -> 10 |'b' -> 11 |'c' -> 12 |'d' -> 13 |'e' -> 14 |'f' -> 15 ]
+    |> foldl [N D -> N*16+D] 0
+
+def adjust = [(_,_,RGB) -> 
+    let F = ['0' -> 'R' | '1' -> 'D' | '2' -> 'L' | '3' -> 'U'] in (F (last RGB), hex (init RGB), RGB)]
+
+def main =
+    input |> parse |> map adjust |> [PP -> (perim PP) + (points PP |> shoelace) + 1]
