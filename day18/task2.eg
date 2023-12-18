@@ -40,7 +40,7 @@ def hex =
     |> foldl [N D -> N*16+D] 0
 
 def adjust = [(_,_,RGB) -> 
-    let F = ['0' -> 'R' | '1' -> 'D' | '2' -> 'L' | '3' -> 'U'] in (F (last RGB), hex (init RGB), RGB)]
+    (['0' -> 'R' | '1' -> 'D' | '2' -> 'L' | '3' -> 'U'] (last RGB), hex (init RGB), RGB)]
 
 def main =
     input |> parse |> map adjust |> [PP -> (perim PP) + (points PP |> shoelace) + 1]
