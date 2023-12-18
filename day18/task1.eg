@@ -1,4 +1,4 @@
-# Advent of Code (AoC) - day 3, task 1
+# Advent of Code (AoC) - day 18, task 1
 
 import "prelude.eg"
 import "os.ego"
@@ -11,14 +11,6 @@ using OS
 using List
 
 def input = let L = read_line stdin in if eof stdin then {} else {L | input}
-
-def to_board =
-   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
-
-def print_board =
-    [ B -> let KK = Dict::keys B in
-        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
-               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
 
 def group = do Regex::compile |> [R -> Regex::group R] 
 
