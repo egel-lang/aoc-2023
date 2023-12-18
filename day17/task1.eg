@@ -47,17 +47,33 @@ def to_edges = [D -> Dict::keys D |> concat_map (paths D) |> map (path_to_edge D
 def to_graph = 
     foldl [G (P,E,Q) -> if Dict::has G P then Dict::set G P {(E,Q)|Dict::get G P} else Dict::set G P {(E,Q)} ] Dict::dict
 
+def add0  = [ none none -> none | X:int none -> X | none Y:int -> Y | X:int Y:int -> X+Y ]
+def less0 = [ none none -> false | X:int none -> true | none Y:int -> false | X:int Y:int -> X < Y ]
+
 def shortest_run = 
     [ G V Q D -> 
         if pqueue_empty Q then D else 
         let (N, P0) = pqueue_top Q in pqueue_pop Q;
         if Dict::has V P0 then shortest_run G V Q D else
-        print (N,P0) "\n";
+        print (N,P0) "\n"; # XXX: debug
         let V = Dict::set V P0 1 in
         let ADJ = Dict::get G P0 |> filter [(_,P1) -> not (Dict::has V P1)] in
-        let D = foldl [D (W,P1) -> Dict::set D P1 (if Dict::has D P1 then min (N+W) (Dict::get D P1) else N+W)] D ADJ in
-        let Q = foldl [Q (_,P1) -> pqueue_push Q (Dict::get D P1) P1] Q ADJ in
+        let (D,Q) =
+             foldl [(D,Q) (W,P1) ->
+                    let ALT = add0 (Dict::nth none D P0) W in
+                    if less0 ALT (Dict::nth none D P1) then (Dict::set D P1 ALT, pqueue_push Q ALT P1)
+                    else (D,Q) ] (D,Q) ADJ in 
             shortest_run G V Q D ]
+#def shortest_run = 
+#    [ G V Q D -> 
+#        if pqueue_empty Q then D else 
+#        let (N, P0) = pqueue_top Q in pqueue_pop Q;
+#        if Dict::has V P0 then shortest_run G V Q D else
+#        let V = Dict::set V P0 1 in
+#        let ADJ = Dict::get G P0 |> filter [(_,P1) -> not (Dict::has V P1)] in
+#        let D = foldl [D (W,P1) -> Dict::set D P1 (if Dict::has D P1 then min (N+W) (Dict::get D P1) else N+W)] D ADJ in
+#        let Q = foldl [Q (_,P1) -> pqueue_push Q (Dict::get D P1) P1] Q ADJ in
+#            shortest_run G V Q D ]
 
 def shortest = 
     [G S -> shortest_run G Dict::dict (foldl [Q (P,W) -> pqueue_push Q W P] pqueue S) (foldl [D (P,W) -> Dict::set D P W] Dict::dict S)]
