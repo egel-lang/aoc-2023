@@ -1,0 +1,44 @@
+# Advent of Code (AoC) - day 3, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "regex.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def group = do Regex::compile |> [R -> Regex::group R] 
+
+def parse = do map (group "([A-Z]) ([0-9]+) (\\(#[0-9a-f]+\\))") |> map [{D,L,RGB} -> (head (unpack D), to_int L, RGB)]
+
+def mul = [N (X,Y) -> (N*X,N*Y)]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+def product = [(X0,Y0) (X1,Y1) -> (X0 * Y1) - (X1 * Y0) ]
+
+def points =
+    let F = ['U' -> (-1,0) |'D' -> (1,0) |'L' -> (0,-1) |'R' -> (0,1)] in
+    do foldl [{P|PP} (D,L,_) -> {add (mul L (F D)) P,P|PP}] {(0,0)} |> reverse
+
+def shoelace =
+    [PP -> let N = length PP in 
+        map [I -> product (List::nth I PP) (List::nth ((I+1)%N) PP)] (from_to 0 (N - 1)) |> sum |> [N -> (abs N)/2] ]
+
+def perim = do map (proj 2) |> sum |> [N -> N/2]
+
+def main =
+    input |> parse |> [PP -> (perim PP) + (points PP |> shoelace) + 1]
