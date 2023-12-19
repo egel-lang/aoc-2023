@@ -1,0 +1,58 @@
+# Advent of Code (AoC) - day 13, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "search.eg"
+import "dictionary.eg"
+using System
+using OS
+using List
+using Search
+
+def debug = [ F X -> print "<-" F " " X "\n"; let Y = F X in print "->" Y "\n"; Y ]
+
+def input = let L = read_line stdin in if eof stdin then nil else cons L input
+
+val digit = Regex::compile "[0-9]"
+val letter = Regex::compile "[a-zA-Z]"
+val op = Regex::compile "[<=>]"
+
+def look     = [ {} -> fail {} | {B|BB} -> success B BB ]
+def is_char  = [ C0 -> look <*> \C1 -> if C0 == C1 then success C0 else fail ]
+def is_digit = look <*> \C -> if Regex::match digit (pack {C}) then success C else fail
+def is_letter = look <*> \C -> if Regex::match letter (pack {C}) then success C else fail
+def is_op = look <*> \C -> if Regex::match op (pack {C}) then success C else fail
+
+def parse_num = plus is_digit <@> \L -> L |> pack |> to_int
+def parse_name = plus is_letter <@> \L -> L |> pack
+
+def parse_command = parse_name <*> \D -> is_op <*> \O -> parse_num <*> \N -> is_char ':' <*> \_ -> parse_name <@> \T -> (unpack D |> head,O,N,T)
+def parse_rule = (parse_command <+> parse_name) </> \R -> is_char ',' <@> \_ -> R
+def parse_flow = parse_name <*> \N -> is_char '{' <*> \_ -> star parse_rule <*> \RR -> is_char '}' <@> \_ -> (N,RR)
+
+def parse_dim = parse_name <*> \_ -> is_char '=' <*> \_ -> parse_num </> \N -> is_char ',' <@> \_ -> N
+def parse_part = is_char '{' <*> \_ -> star parse_dim <*> \DD -> is_char '}' <@> \_ -> [{X,M,A,S} -> (X,M,A,S)] DD
+
+def parse_line = [ L -> (search (parse_flow <+> parse_part) L [X CC -> X] [X CC -> throw X] [X CC -> throw X]) ]
+
+
+def fetch = [ 'x' (X,M,A,S) -> X | 'm' (X,M,A,S) -> M | 'a' (X,M,A,S) -> A | 's' (X,M,A,S) -> S ]
+
+def next = 
+    [ (F,'<',N,T) X -> if fetch F X < N then T else none
+    | (F,'>',N,T) X -> if N < fetch F X then T else none 
+    | T X -> T ]
+
+def move = [ CC (B,X) -> (foldl [none C -> next C X| T C -> T] none (Dict::get CC B), X) ]
+
+def solve =
+    [ CC XX -> XX |>  split (do fst |> ["A"-> true|"R"->true|_->false]) |>
+            [(XX,{}) -> XX
+            |(XX,YY) -> solve CC (XX ++ map (move CC) YY) ] ]
+
+def count = do map [("A",(X,M,A,S)) -> X+M+A+S | _ -> 0] |> sum
+
+def main = 
+    input |> map unpack |> split_on {} |> map (map parse_line) 
+    |> [{CC,XX} -> solve (Dict::from_list CC) (map (tuple "in") XX)] |> count
