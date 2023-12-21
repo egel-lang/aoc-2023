@@ -1,0 +1,34 @@
+#Advent of Code (AoC) - day 13, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "search.eg"
+import "dictionary.eg"
+using System
+using OS
+using List
+using Search
+
+def debug = [ F X -> print "<-" F " " X "\n"; let Y = F X in print "->" Y "\n"; Y ]
+
+def input = let L = read_line stdin in if eof stdin then nil else cons L input
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def dirs = {(-1,0),(1,0),(0,-1),(0,1)}
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+def next = [D P -> map (add P) dirs |> filter (Dict::has D) |> filter (do Dict::get D |> ((/=) '#'))]
+
+def start = do Dict::to_list |> filter (do snd |> ((==) 'S')) |> head |> fst
+
+def main = 
+    input |> map unpack |> to_board |> [D -> iter 64 (do concat_map (next D) |> unique) {start D}] |> length
