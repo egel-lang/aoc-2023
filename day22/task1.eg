@@ -30,16 +30,17 @@ val ground = {(min_int,max_int),(min_int,max_int),(0,1)}
 
 def drop = do zip_with [N (X,Y) -> (X+N,Y+N)] {0,0,-1}
 
-def overlaps = [C CC -> map (intersect3 C) CC |> all ((==) none)]
+def overlaps = [C CC -> map (intersect3 C) CC |> any ((/=) none)]
 
-def fall = [(CC0,CC1) C -> drop C |> [C1 -> if overlaps C1 CC1 then (CC0,{C|CC1}) else ({C1|CC0},CC1)] ]
+def fall = [({C|CC0},CC1) -> drop C |> [C1 -> if overlaps C1 CC1 then (CC0,{C|CC1}) else ({C1|CC0},CC1)] ]
 
 def drops = 
     do sort_by [C0 C1 -> reverse C0 < reverse C1] 
-    |> [CC -> iter_until (do fst |> ((==) {})) [(CC0,CC1) -> foldl (debug fall) ({},CC1) CC0] (CC,{ground})]
+    |> [CC -> iter_until (do fst |> ((==) {})) (debug fall)  (CC,{ground})]
     |> [(_,CC) -> filter ((/=) ground) CC]
 
-def disintegrate = [CC -> map [C -> filter ((==) C) CC |> [CC -> CC == drops CC]] CC]
+def disintegrate = [CC -> map [C -> filter ((/=) C) CC |> [CC -> CC == drops CC]] CC]
 
 def main = 
-    input |> parse |> map to_volume |> drops #|> disintegrate |> map [true -> 1|_ -> 0] |> sum
+    input |> parse |> map to_volume |> drops |> disintegrate |> map [true -> 1|_ -> 0] |> sum
+    #input |> parse |> map to_volume |> head |> drop
