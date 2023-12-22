@@ -1,0 +1,45 @@
+#Advent of Code (AoC) - day 13, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "search.eg"
+import "dictionary.eg"
+using System
+using OS
+using List
+using Search
+
+val number = Regex::compile "[0-9]+"
+
+def iter_until = [P F X -> if P X then X else iter_until P F (F X)]
+
+def debug = [ F X -> print "<-" F " " X "\n"; let Y = F X in print "->" Y "\n"; Y ]
+
+def input = let L = read_line stdin in if eof stdin then nil else cons L input
+
+def parse = map (do Regex::matches number |> map to_int |> [{X0,Y0,Z0,X1,Y1,Z1} -> {(X0,Y0,Z0),(X1,Y1,Z1)}])
+
+def to_volume = [{(X0,Y0,Z0),(X1,Y1,Z1)} -> let F = [A B -> (min A B, max A B + 1)] in {F X0 X1, F Y0 Y1, F Z0 Z1}]
+
+def intersect = [(X0,X1) (Y0,Y1) -> [(X0,X1) -> if X0 == X1 then none else (X0,X1)] (max X0 Y0, min X1 Y1) ]
+
+def intersect3 = [C0 C1 -> zip_with intersect C0 C1 |> [C -> if any ((==) none) C then none else C] ]
+
+val ground = {(min_int,max_int),(min_int,max_int),(0,1)}
+
+def drop = do zip_with [N (X,Y) -> (X+N,Y+N)] {0,0,-1}
+
+def overlaps = [C CC -> map (intersect3 C) CC |> all ((==) none)]
+
+def fall = [(CC0,CC1) C -> drop C |> [C1 -> if overlaps C1 CC1 then ({C1|CC0},CC1) else (CC0,{C|CC1})]]
+
+def drops = 
+    do sort_by [C0 C1 -> reverse C0 < reverse C1] 
+    |> [CC -> iter_until (do fst |> ((==) {})) [(CC0,CC1) -> foldl fall ({},CC1) CC0] (CC,{ground})]
+    |> [(_,CC) -> filter ((/=) ground) CC]
+
+def disintegrate = [CC -> map [C -> filter ((==) C) CC |> [CC -> CC == drops CC]] CC]
+
+def main = 
+    input |> parse |> map to_volume |> drops |> disintegrate |> map [true -> 1|_ -> 0] |> sum
