@@ -1,5 +1,7 @@
 # Advent of Code (AoC) - day 17, task 1
 
+# only for the example
+
 import "prelude.eg"
 import "os.ego"
 import "generator.eg"
