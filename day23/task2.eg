@@ -1,0 +1,53 @@
+# Advent of Code (AoC) - day 17, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "generator.eg"
+import "dictionary.eg"
+import "pqueue.ego"
+
+using System
+using OS
+using List
+
+def input = let L = read_line stdin in if eof stdin then {} else {L | input}
+
+def to_board =
+   do Gen::from_lists |> Gen::zip_2d Gen::space |> Gen::to_lists |> flatten |> Dict::from_list
+
+def print_board =
+    [ B -> let KK = Dict::keys B in
+        foldl [(X0,Y0) (X1,Y1) -> (if not (X0 == X1) then print "\n" else none);
+               print (Dict::get B (X1, Y1)); (X1,Y1) ] (head KK) KK; none ]
+
+def parse = do map unpack |> to_board
+
+def mul = [N (X,Y) -> (N*X,N*Y)]
+
+def add = [(X0,Y0) (X1,Y1) -> (X0+X1,Y0+Y1)]
+
+val dirs = {(0,1),(0,-1),(1,0),(-1,0)}
+
+def start = (0,1)
+
+def end = do Dict::keys |> maximum
+
+def next =
+    [D P -> Dict::get D P 
+    |> ['#' -> {} 
+       |_ -> map (add P) dirs]
+    |> filter (Dict::has D)
+    |> filter (do Dict::get D |> ((/=) '#')) ]
+
+def to_graph = [D -> Dict::keys D |> filter (do Dict::get D |> ((/=) '#')) |> map [P -> (P, next D P)] ]
+
+def hike =
+    [G P E S ->
+        if S == E then {{S}}
+        else if elem S P then {}
+        else Dict::get G S |> map (hike G {S|P} E) 
+             |> filter ((/=) {}) |> flatten |> map (cons S) ]
+
+def main =
+    input |> parse |> to_graph |> Dict::from_list |> [G -> hike G {} (end G) start]
+    |> map length |> map [X -> X - 1] |> maximum
