@@ -42,5 +42,5 @@ def drops =
 def disintegrate = [CC -> map [C -> filter ((/=) C) CC |> [CC -> CC == drops CC]] CC]
 
 def main = 
-    input |> parse |> map to_volume |> drops |> disintegrate |> map [true -> 1|_ -> 0] |> sum
+    input |> parse |> take 3 |> map to_volume |> drops #|> disintegrate |> map [true -> 1|_ -> 0] |> sum
     #input |> parse |> map to_volume |> head |> drop
