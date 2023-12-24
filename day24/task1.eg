@@ -1,0 +1,36 @@
+#Advent of Code (AoC) - day 13, task 1
+
+import "prelude.eg"
+import "os.ego"
+import "regex.ego"
+import "search.eg"
+import "dictionary.eg"
+using System
+using OS
+using List
+using Search
+
+val number = Regex::compile "-?[0-9]+"
+
+def debug = [ F X -> print "<-" F " " X "\n"; let Y = F X in print "->" Y "\n"; Y ]
+
+def input = let L = read_line stdin in if eof stdin then nil else cons L input
+
+def parse = map (do Regex::matches number |> map to_int |> [{X0,Y0,Z0,X1,Y1,Z1} -> ((X0,Y0,Z0),(X1,Y1,Z1))])
+
+def pairs =  [ {} -> {} | {X|XX} -> map (tuple X) XX ++ pairs XX ]
+
+def inter =
+    [ ((APX, APY, APZ), (AVX, AVY, AVZ)) ((BPX, BPY, BPZ), (BVX, BVY, BVZ)) ->
+    let F = to_float in
+    let IN = [ A -> and ( F 200000000000000 <= A) (A <= F 400000000000000) ] in
+    (AVX * BVY - AVY * BVX) 
+    |>  [ 0 -> 0 
+        | D -> let T = F ((BPX - APX) * BVY - (BPY - APY) * BVX) / F D in
+               let U = F ((BPX - APX) * AVY - (BPY - APY) * AVX) / F D in
+               if T < F 0 then 0 else if U < F 0 then 0
+               else if and (IN (F APX + T * F AVX)) (IN (F APY + T * F AVY)) then 1 
+               else 0 ] ]
+
+def main = 
+    input |> parse |> pairs |> map (uncurry inter) |> sum
