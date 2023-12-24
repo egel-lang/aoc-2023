@@ -1,14 +1,11 @@
-#Advent of Code (AoC) - day 13, task 1
+#Advent of Code (AoC) - day 24, task 1
 
 import "prelude.eg"
 import "os.ego"
 import "regex.ego"
-import "search.eg"
-import "dictionary.eg"
 using System
 using OS
 using List
-using Search
 
 val number = Regex::compile "-?[0-9]+"
 
