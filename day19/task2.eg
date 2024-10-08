@@ -1,0 +1,55 @@
+import "prelude.eg"
+import "search.eg"
+import "dictionary.eg"
+
+using OS, System, List, Search
+
+def input = let L = read_line stdin in if eof stdin then nil else cons L input                                                               
+
+def look = [{} -> fail {} | {T|TT} -> success T {T|TT} ]
+def skip = [{} -> success none {} | {_|TT} -> success none TT]
+def match = [S0 -> look <*> [(T, S1) -> if S0 == S1 then skip <*> \_ -> success S0 else fail]]
+def tag = [T0 -> look <*> [(T1, S) -> if T0 == T1 then skip <*> \_ -> success S else fail]]
+def is_name = tag "lowercase" <+> tag "uppercase"
+def is_op = tag "operator"
+def is_num = tag "integer" <@> \S -> (to_int S)
+
+def parse_guard = (is_name <+> is_num) <*> \C0 -> is_op <*> \OP -> (is_name <+> is_num) <@> \C1 -> (C0 OP C1)
+def parse_command = parse_guard <*> \G -> match ":" <*> \_ -> is_name <@> \T -> (G, T)
+def parse_rule = (parse_command <+> is_name) </> \R -> match "," <@> \_ -> R
+def parse_flow = is_name <*> \N -> match "{" <*> \_ -> star parse_rule <*> \RR -> match "}" <@> \_ -> (N,RR)
+
+def parse_dim = is_name <*> \_ -> match "=" <*> \_ -> is_num </> \N -> match "," <@> \_ -> N
+def parse_part = match "{" <*> \_ -> star parse_dim <*> \DD -> match "}" <@> \_ -> [{X,M,A,S} -> (X,M,A,S)] DD
+
+def parse_lines = search (star (parse_flow <+> parse_part)) [X CC -> X] [X CC -> throw X] [X CC -> throw X]
+
+def rules = do foldl (+) "" |> tokenize "" |> map [(P,T,S) -> (T,S)] |> parse_lines |> filter [(P, RR) -> true | _ -> false]
+
+def xmas = ["x" -> 0 | "m" -> 1 | "a" -> 2 | "s" -> 3]
+
+def cube_split = [D N C -> (proj_update D [(X,Y) -> (X,N)] C, proj_update D [(X,Y) -> (N+1,Y)] C)]
+def cube_size = do tuple_to_list |> map [(X,Y) -> 1 + Y - X] |> product
+def is_cube = do tuple_to_list |> all [(X,Y) -> X <= Y]
+def space = ((1,4000),(1,4000),(1,4000),(1,4000))
+
+def next0 =
+    [{((T "<" N), B)|RR} C -> 
+        let (C0,C1) = cube_split (xmas T) (N - 1) C in
+        {(B, C0)|next0 RR C1}
+    |{((T ">" N), B)|RR} C -> 
+        let (C0,C1) = cube_split (xmas T) (N - 0) C in
+        {(B, C1)|next0 RR C0}
+    |{B} C -> {(B, C)}]
+
+def next = [RR C -> next0 RR C |> filter [(_,C) -> is_cube C]]
+
+def process =
+    [D {("R", C)|AA} -> process D AA
+    |D {("A", C)|AA} -> {("A", C)| process D AA}
+    |D {(B,C)|AA}    -> process D (next (Dict::get D B) C ++ AA)
+    |D {}            -> {} ]
+
+def main = 
+    input |> rules |> Dict::from_list |> [D -> process D {("in", space)}]
+    |> map snd |> map cube_size |> sum
