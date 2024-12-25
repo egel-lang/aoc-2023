@@ -11,6 +11,17 @@
 
   {{author}}
 
+These are pretty ugly programs since I treated this year as how a novice
+would write Egel programs. Nothing is looked up online, no academic sources
+are used, nothing is polished.
+
+I needed to do this myself since I don't have users and production code
+looks very, very different from showcases.
+
+A task is abandoned when not solution is found.
+
+*WARNING* Ugly code ahead.
+
 ## Day 1 
 
 {{code "day01/task2.eg"}}
