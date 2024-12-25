@@ -1,0 +1,178 @@
+.import "prelude.eg";;
+.using System;;
+.using List;;
+.egel def code = [S -> OS::read_lines (OS::open_in S) |> map ((+) "    ") |> [LL -> {"```"} ++ LL ++ {"```"}] |> reduce [S0 S1 -> S0 + "\n" + S1]];;
+.egel def aoc_day = [N -> "Advent of Code [day " + to_text N + "](https://adventofcode.com/2024/day/" + to_text N + ")."];;
+.def author = "Marco Devillers";;
+.def title = "Egel Solutions to Advent of Code 2023";;
+.def footer = "Copyright 2023 " + author + ", MIT licence";;
+.egel add_reference "Egel" "Devillers, Marco. The Egel Language. Github, [Egel Language](https://egel-lang.github.io/), 2023.";;
+# {{title}}
+
+  {{author}}
+
+## Day 1 
+
+{{code "day01/task2.eg"}}
+
+{{aoc_day 1}}
+
+## Day 2 
+
+{{code "day02/task2.eg"}}
+
+{{aoc_day 2}}
+
+## Day 3 
+
+{{code "day03/task2.eg"}}
+
+{{aoc_day 3}}
+
+## Day 4 
+
+{{code "day04/task2.eg"}}
+
+{{aoc_day 4}}
+
+## Day 5 
+
+{{code "day05/task2.eg"}}
+
+{{aoc_day 5}}
+
+## Day 6 
+
+{{code "day06/task2.eg"}}
+
+{{aoc_day 6}}
+
+## Day 7 
+
+{{code "day07/task2.eg"}}
+
+{{aoc_day 7}}
+
+## Day 8 
+
+{{code "day08/task2.eg"}}
+
+{{aoc_day 8}}
+
+## Day 9 
+
+{{code "day09/task2.eg"}}
+
+{{aoc_day 9}}
+
+## Day 10 
+
+{{code "day10/task2.eg"}}
+
+{{aoc_day 10}}
+
+## Day 11 
+
+{{code "day10/task2.eg"}}
+
+{{aoc_day 11}}
+
+## Day 12 
+
+{{code "day12/task2.eg"}}
+
+{{aoc_day 12}}
+
+## Day 13 
+
+{{code "day13/task2.eg"}}
+
+{{aoc_day 13}}
+
+## Day 14 
+
+{{code "day14/task2.eg"}}
+
+{{aoc_day 14}}
+
+## Day 15 
+
+{{code "day15/task2.eg"}}
+
+{{aoc_day 15}}
+
+## Day 16 
+
+{{code "day16/task2.eg"}}
+
+{{aoc_day 16}}
+
+## Day 17 
+
+Missed this day.
+
+{{aoc_day 17}}
+
+## Day 18 
+
+{{code "day18/task2.eg"}}
+
+{{aoc_day 18}}
+
+## Day 19 
+
+{{code "day19/task2.eg"}}
+
+{{aoc_day 19}}
+
+## Day 20 
+
+Missed this day.
+
+{{aoc_day 20}}
+
+## Day 21 
+
+{{code "day21/task2.eg"}}
+
+{{aoc_day 21}}
+
+## Day 22 
+
+Missed this day.
+
+{{aoc_day 22}}
+
+## Day 23 
+
+{{code "day23/task2.eg"}}
+
+{{aoc_day 23}}
+
+## Day 24
+
+{{code "day24/task2.eg"}}
+
+{{aoc_day 24}}
+
+## Day 25
+
+{{code "day25/task1.eg"}}
+
+{{aoc_day 25}}
+
+## Line, word, and character count
+
+```
+{{OS::exec "./mk-wc.eg"}}
+```
+
+## Lines of code, token, and unique token count
+
+```
+{{OS::exec "./mk-locs.eg"}}
+
+    -- excluding import and using
+```
+
+.hook [XX -> XX ++ {footer}]
